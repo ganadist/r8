@@ -151,7 +151,7 @@ public final class R8Command extends BaseCompilerCommand {
 
     @Override
     CompilationMode defaultCompilationMode() {
-      return CompilationMode.RELEASE;
+      return Boolean.getBoolean("r8.compilation.mode.debug") ? CompilationMode.DEBUG : CompilationMode.RELEASE;
     }
 
     Builder setSynthesizedClassesPrefix(String prefix) {
@@ -826,6 +826,11 @@ public final class R8Command extends BaseCompilerCommand {
   }
 
   @Override
+  public CompilationMode getMode() {
+    return Boolean.getBoolean("r8.compilation.mode.debug") ? CompilationMode.DEBUG : CompilationMode.RELEASE;
+  }
+
+  @Override
   InternalOptions getInternalOptions() {
     InternalOptions internal = new InternalOptions(proguardConfiguration, getReporter());
     assert !internal.testing.allowOutlinerInterfaceArrayArguments;  // Only allow in tests.
@@ -858,6 +863,9 @@ public final class R8Command extends BaseCompilerCommand {
         || internal.horizontalClassMergerOptions().isDisabled();
     assert !internal.enableTreeShakingOfLibraryMethodOverrides;
     assert internal.enableVerticalClassMerging || !proguardConfiguration.isOptimizing();
+    Reporter reporter = getReporter();
+    reporter.warning(new StringDiagnostic("debug mode is " + internal.debug));
+
     if (internal.debug) {
       internal.getProguardConfiguration().getKeepAttributes().lineNumberTable = true;
       internal.getProguardConfiguration().getKeepAttributes().localVariableTable = true;
